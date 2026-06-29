@@ -244,6 +244,14 @@
         </div>
     </div>
 
+    <!-- Image Viewer Modal -->
+    <div id="imageViewerModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden" onclick="closeImageModal()">
+        <div class="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center">
+            <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-slate-300 hover:text-white transition-all text-4xl font-bold">&times;</button>
+            <img id="imageViewerSrc" src="" alt="Imagem ampliada" class="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl" onclick="event.stopPropagation()" />
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         // Lista limpa para você inserir seus próprios itens pelo painel.
@@ -531,7 +539,7 @@
 
                 card.innerHTML = `
                     ${adminControls}
-                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                    <div class="relative h-56 overflow-hidden bg-slate-100 cursor-pointer" onclick="openImageModal('${finalImgUrl}')" title="Clique para ampliar a imagem">
                         <img src="${finalImgUrl}" alt="${item.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div class="absolute top-3.5 left-3.5 flex flex-col gap-1.5 items-start">
                             ${statusBadge}
@@ -585,6 +593,19 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // Image Viewer Actions
+        function openImageModal(imageUrl) {
+            document.getElementById('imageViewerSrc').src = imageUrl;
+            document.getElementById('imageViewerModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Impede o fundo de rolar
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageViewerModal').classList.add('hidden');
+            document.body.style.overflow = ''; // Restaura a rolagem do fundo
+            setTimeout(() => { document.getElementById('imageViewerSrc').src = ""; }, 300); // Limpa imagem da memória visual
         }
 
         // Add / Edit actions
