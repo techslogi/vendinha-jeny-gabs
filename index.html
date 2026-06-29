@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bota-fora de Mudança - Gabriel & Jenyffer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Efeito de balanço para PIN incorreto */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-16">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg text-slate-100">
+        <div class="max-w-6xl mx-auto px-4 py-8 text-center md:text-left md:flex md:items-center md:justify-between">
+            <div>
+                <span class="bg-indigo-500/20 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Bazar de Mudança 📦</span>
+                <h1 id="headerTitle" class="text-3xl md:text-4xl font-extrabold mt-2 tracking-tight">Nosso Bota-fora</h1>
+                <p id="headerSubtitle" class="text-slate-300 mt-1 text-sm md:text-base">Estamos de mudança para o apartamento novo e vendendo itens que não vamos levar. Aproveite!</p>
+            </div>
+            <div class="mt-6 md:mt-0 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="requestAdminAccess()" id="adminBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all border border-slate-700 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Área do Vendedor
+                </button>
+                <button onclick="shareCatalog()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-indigo-900/20 hover:shadow-indigo-900/30 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l4.814-2.407m0 7.33l-4.814-2.406m6.194-3.118a3 3 0 11-6 0 3 3 0 016 0zm6 8.588a3 3 0 11-6 0 3 3 0 016 0zm0-17.176a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Compartilhar Link
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- Admin Configuration Bar (Hidden by default, PIN protected) -->
+        <div id="adminPanel" class="hidden mb-8 p-6 bg-white border border-indigo-100 rounded-3xl shadow-sm transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    Painel do Vendedor
+                </h3>
+                <button onclick="exitAdminMode()" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Sair da Sessão ×</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">WhatsApp (DDD + Número)</label>
+                    <input type="text" id="configPhone" placeholder="Ex: 41999999999" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" />
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Título do Bazar</label>
+                    <input type="text" id="configTitle" placeholder="Ex: Nosso Bota-fora" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Alterar PIN do Painel (4 dígitos)</label>
+                    <input type="password" id="configPIN" maxlength="4" placeholder="Ex: 1992" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" />
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Subtítulo explicativo</label>
+                <input type="text" id="configSubtitle" placeholder="Breve resumo da mudança" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" />
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
+                <div class="text-xs text-indigo-900 max-w-xl">
+                    <strong>🔑 Sessão Segura Ativa:</strong> As alterações de preços e PIN salvam apenas no seu navegador atual. Quando clicar em <strong>"Compartilhar Link"</strong>, o link copiado levará consigo as informações atualizadas, incluindo o seu PIN configurado para proteção.
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="openAddItemModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm">
+                        + Adicionar Item
+                    </button>
+                    <button onclick="saveConfigurations()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm">
+                        Salvar Ajustes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="flex flex-wrap gap-2 items-center" id="categoryFilters">
+                <button onclick="filterCategory('todos')" id="filter-todos" class="category-btn px-4 py-2 rounded-full text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm">Todos</button>
+                <button onclick="filterCategory('eletro')" id="filter-eletro" class="category-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Eletros</button>
+                <button onclick="filterCategory('moveis')" id="filter-moveis" class="category-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Móveis</button>
+                <button onclick="filterCategory('eletronicos')" id="filter-eletronicos" class="category-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Eletrônicos</button>
+                <button onclick="filterCategory('outros')" id="filter-outros" class="category-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Geral / Gatos</button>
+            </div>
+            
+            <div class="relative w-full lg:w-80">
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Pesquise por nome do item..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm transition-all" />
+                <div class="absolute left-3.5 top-3 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Grid -->
+        <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamically populated -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div class="inline-flex p-4 bg-slate-100 rounded-full text-slate-400 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <h3 class="font-bold text-lg text-slate-700">Nenhum item encontrado</h3>
+            <p class="text-slate-500 mt-1">Sua lista está vazia. Acesse a Área do Vendedor para adicionar itens.</p>
+        </div>
+    </main>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3 transition-all duration-300 pointer-events-none z-50">
+        <span id="toastIcon" class="text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        </span>
+        <span id="toastMessage" class="text-sm font-medium">Link copiado com sucesso!</span>
+    </div>
+
+    <!-- PIN PAD LOCK MODAL (Visual Security) -->
+    <div id="pinLockModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div id="pinBox" class="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl flex flex-col items-center border border-slate-100 transform transition-all duration-300">
+            <div class="p-4 bg-indigo-50 rounded-full text-indigo-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h4 class="font-bold text-xl text-slate-800 text-center">Acesso Protegido</h4>
+            <p class="text-xs text-slate-500 text-center mt-1 mb-6">Insira o PIN de 4 dígitos para gerenciar o bota-fora</p>
+            
+            <!-- Dots indicator -->
+            <div class="flex gap-4 mb-8">
+                <span class="pin-dot w-4 h-4 rounded-full border-2 border-slate-300 bg-transparent transition-all"></span>
+                <span class="pin-dot w-4 h-4 rounded-full border-2 border-slate-300 bg-transparent transition-all"></span>
+                <span class="pin-dot w-4 h-4 rounded-full border-2 border-slate-300 bg-transparent transition-all"></span>
+                <span class="pin-dot w-4 h-4 rounded-full border-2 border-slate-300 bg-transparent transition-all"></span>
+            </div>
+
+            <!-- Custom PIN Keypad -->
+            <div class="grid grid-cols-3 gap-3 w-full max-w-[240px]">
+                <button onclick="pressPinKey(1)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">1</button>
+                <button onclick="pressPinKey(2)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">2</button>
+                <button onclick="pressPinKey(3)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">3</button>
+                <button onclick="pressPinKey(4)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">4</button>
+                <button onclick="pressPinKey(5)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">5</button>
+                <button onclick="pressPinKey(6)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">6</button>
+                <button onclick="pressPinKey(7)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">7</button>
+                <button onclick="pressPinKey(8)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">8</button>
+                <button onclick="pressPinKey(9)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">9</button>
+                <button onclick="clearPin()" class="h-14 rounded-2xl bg-rose-50 hover:bg-rose-100 text-xs font-bold text-rose-600 active:scale-95 transition-all uppercase">Limpar</button>
+                <button onclick="pressPinKey(0)" class="h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 text-lg font-bold text-slate-700 active:scale-95 transition-all">0</button>
+                <button onclick="closePinLock()" class="h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-500 active:scale-95 transition-all uppercase">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 transition-all">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">
+                <h4 id="modalTitle" class="font-bold text-lg">Adicionar Novo Item</h4>
+                <button onclick="closeItemModal()" class="text-slate-400 hover:text-white transition-all text-2xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <input type="hidden" id="modalItemId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nome do Item *</label>
+                    <input type="text" id="modalItemName" placeholder="Ex: Bicicleta Ergonômica Schwinn" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Categoria *</label>
+                        <select id="modalItemCategory" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all">
+                            <option value="eletro">Eletrodomésticos</option>
+                            <option value="moveis">Móveis</option>
+                            <option value="eletronicos">Eletrônicos</option>
+                            <option value="outros">Geral / Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Estado do Item *</label>
+                        <select id="modalItemCondition" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all">
+                            <option value="Excelente">Excelente (Sem marcas)</option>
+                            <option value="Bom">Bom (Pequenas marcas)</option>
+                            <option value="Regular">Regular (Funciona bem)</option>
+                            <option value="Novo">Novo (Na caixa / sem uso)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Preço Desejado (R$) *</label>
+                        <input type="number" id="modalItemPrice" placeholder="Ex: 850" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Preço Original (R$ - Opcional)</label>
+                        <input type="number" id="modalItemOriginalPrice" placeholder="Ex: 1400" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status *</label>
+                        <select id="modalItemStatus" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all">
+                            <option value="disponivel">Disponível</option>
+                            <option value="reservado">Reservado</option>
+                            <option value="vendido">Vendido</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">URL da Foto</label>
+                        <input type="text" id="modalItemImage" placeholder="Deixe em branco p/ usar padrão" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Descrição / Informações Adicionais</label>
+                    <textarea id="modalItemDesc" rows="3" placeholder="Voltagem, tamanho, tempo de uso ou detalhes da retirada no local..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all resize-none"></textarea>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+                <button onclick="closeItemModal()" class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-sm font-semibold transition-all">Cancelar</button>
+                <button onclick="saveItem()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-md">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Lista limpa para você inserir seus próprios itens pelo painel.
+        const PRESET_ITEMS = [];
+
+        let items = [];
+        let whatsappNumber = "41999999999"; 
+        let adminPIN = "1992"; // Default PIN to lock down modifications
+        let catalogTitle = "Bota-fora - Gabriel & Jenyffer";
+        let catalogSubtitle = "Estamos de mudança para o apartamento novo e vendendo itens que não vamos levar. Aproveite os preços!";
+        
+        let isAdminActive = false;
+        let activeCategory = 'todos';
+        let currentPinInput = "";
+
+        window.onload = function() {
+            loadState();
+            renderCatalog();
+        };
+
+        // LocalStorage and URL state recovery
+        function loadState() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('d');
+
+            if (dataParam) {
+                try {
+                    const decodedJson = decodeURIComponent(atob(decodeURIComponent(dataParam)).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    
+                    const state = JSON.parse(decodedJson);
+                    if (state.items && Array.isArray(state.items)) {
+                        items = state.items;
+                    }
+                    if (state.config) {
+                        whatsappNumber = state.config.whatsapp || whatsappNumber;
+                        catalogTitle = state.config.title || catalogTitle;
+                        catalogSubtitle = state.config.subtitle || catalogSubtitle;
+                        adminPIN = state.config.pin || adminPIN;
+                    }
+                    showToast("Carregando catálogo compartilhado!", "info");
+                    updateHeaderUI();
+                    return;
+                } catch(e) {
+                    console.error("Falha ao abrir catálogo compartilhado. Carregando dados locais.", e);
+                }
+            }
+
+            const localItems = localStorage.getItem('move_bazar_items');
+            const localPhone = localStorage.getItem('move_bazar_phone');
+            const localTitle = localStorage.getItem('move_bazar_title');
+            const localSubtitle = localStorage.getItem('move_bazar_subtitle');
+            const localPIN = localStorage.getItem('move_bazar_pin');
+
+            items = localItems ? JSON.parse(localItems) : PRESET_ITEMS;
+            if (localPhone) whatsappNumber = localPhone;
+            if (localTitle) catalogTitle = localTitle;
+            if (localSubtitle) catalogSubtitle = localSubtitle;
+            if (localPIN) adminPIN = localPIN;
+
+            document.getElementById('configPhone').value = whatsappNumber;
+            document.getElementById('configTitle').value = catalogTitle;
+            document.getElementById('configSubtitle').value = catalogSubtitle;
+            document.getElementById('configPIN').value = adminPIN;
+            
+            updateHeaderUI();
+        }
+
+        function updateHeaderUI() {
+            document.getElementById('headerTitle').innerText = catalogTitle;
+            document.getElementById('headerSubtitle').innerText = catalogSubtitle;
+        }
+
+        // Authentication Flow (Keypad / Pin pad)
+        function requestAdminAccess() {
+            if (isAdminActive) {
+                exitAdminMode();
+                return;
+            }
+            currentPinInput = "";
+            updatePinDots();
+            document.getElementById('pinLockModal').classList.remove('hidden');
+        }
+
+        function closePinLock() {
+            document.getElementById('pinLockModal').classList.add('hidden');
+            currentPinInput = "";
+        }
+
+        function pressPinKey(num) {
+            if (currentPinInput.length >= 4) return;
+            currentPinInput += num;
+            updatePinDots();
+
+            if (currentPinInput.length === 4) {
+                // Verify PIN
+                setTimeout(verifyPin, 150);
+            }
+        }
+
+        function clearPin() {
+            currentPinInput = "";
+            updatePinDots();
+        }
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach(function(dot, idx) {
+                if (idx < currentPinInput.length) {
+                    dot.classList.remove('bg-transparent', 'border-slate-300');
+                    dot.classList.add('bg-indigo-600', 'border-indigo-600');
+                } else {
+                    dot.classList.remove('bg-indigo-600', 'border-indigo-600');
+                    dot.classList.add('bg-transparent', 'border-slate-300');
+                }
+            });
+        }
+
+        function verifyPin() {
+            if (currentPinInput === adminPIN) {
+                // Correct
+                isAdminActive = true;
+                closePinLock();
+                enterAdminMode();
+            } else {
+                // Shake effect on error
+                const pinBox = document.getElementById('pinBox');
+                pinBox.classList.add('shake');
+                showToast("PIN incorreto. Tente novamente.", "error");
+                clearPin();
+                setTimeout(function() {
+                    pinBox.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        function enterAdminMode() {
+            const panel = document.getElementById('adminPanel');
+            const btn = document.getElementById('adminBtn');
+            
+            panel.classList.remove('hidden');
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H9V7a1 1 0 012 0v2h2V7a5 5 0 00-5-5z"/></svg>
+                Bloquear Painel
+            `;
+            btn.classList.add('border-emerald-500', 'text-emerald-400');
+            renderCatalog();
+        }
+
+        function exitAdminMode() {
+            isAdminActive = false;
+            const panel = document.getElementById('adminPanel');
+            const btn = document.getElementById('adminBtn');
+            
+            panel.classList.add('hidden');
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Área do Vendedor
+            `;
+            btn.classList.remove('border-emerald-500', 'text-emerald-400');
+            renderCatalog();
+            showToast("Painel bloqueado com segurança!", "info");
+        }
+
+        // Save Admin Settings
+        function saveConfigurations() {
+            whatsappNumber = document.getElementById('configPhone').value.replace(/\D/g, '');
+            catalogTitle = document.getElementById('configTitle').value || "Bota-fora - Gabriel & Jenyffer";
+            catalogSubtitle = document.getElementById('configSubtitle').value || "";
+            const newPin = document.getElementById('configPIN').value;
+
+            if (newPin.length !== 4 || isNaN(newPin)) {
+                showToast("O PIN de segurança deve ter exatamente 4 números.", "error");
+                return;
+            }
+
+            adminPIN = newPin;
+
+            localStorage.setItem('move_bazar_phone', whatsappNumber);
+            localStorage.setItem('move_bazar_title', catalogTitle);
+            localStorage.setItem('move_bazar_subtitle', catalogSubtitle);
+            localStorage.setItem('move_bazar_pin', adminPIN);
+
+            updateHeaderUI();
+            renderCatalog();
+            showToast("Ajustes salvos e PIN atualizado!", "success");
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('itemsGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            grid.innerHTML = '';
+
+            let filteredItems = items.filter(function(item) {
+                const matchesCategory = activeCategory === 'todos' || item.category === activeCategory;
+                const matchesSearch = item.name.toLowerCase().includes(searchVal) || (item.description && item.description.toLowerCase().includes(searchVal));
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredItems.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+                grid.classList.remove('hidden');
+            }
+
+            // Available first, then reserved, then sold
+            filteredItems.sort(function(a, b) {
+                const statusPriority = { 'disponivel': 1, 'reservado': 2, 'vendido': 3 };
+                return statusPriority[a.status] - statusPriority[b.status];
+            });
+
+            filteredItems.forEach(function(item) {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative group";
+                
+                let conditionColor = "bg-slate-100 text-slate-600";
+                if (item.condition === 'Novo') conditionColor = "bg-purple-50 text-purple-600 border border-purple-100";
+                if (item.condition === 'Excelente') conditionColor = "bg-emerald-50 text-emerald-600 border border-emerald-100";
+                if (item.condition === 'Bom') conditionColor = "bg-sky-50 text-sky-600 border border-sky-100";
+
+                let statusBadge = '';
+                if (item.status === 'disponivel') {
+                    statusBadge = '<span class="bg-emerald-500/95 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">Disponível</span>';
+                } else if (item.status === 'reservado') {
+                    statusBadge = '<span class="bg-amber-500/95 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">Reservado</span>';
+                } else {
+                    statusBadge = '<span class="bg-slate-500/95 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">Vendido</span>';
+                }
+
+                const currentPrice = parseFloat(item.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                let discountText = '';
+                if (item.originalPrice && item.originalPrice > item.price) {
+                    const discount = Math.round((1 - (item.price / item.originalPrice)) * 100);
+                    const origPrice = parseFloat(item.originalPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    discountText = `
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                            <span class="text-xs text-slate-400 line-through">${origPrice}</span>
+                            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">${discount}% OFF</span>
+                        </div>
+                    `;
+                }
+
+                let actionBtn = '';
+                if (item.status === 'disponivel') {
+                    actionBtn = `
+                        <button onclick="sendInterest('${item.name}', ${item.price})" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-2xl text-sm font-semibold transition-all shadow-md flex items-center justify-center gap-2">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.455L0 24zm6.59-4.846c1.66.986 3.284 1.503 5.353 1.504 5.518 0 10.005-4.486 10.008-10.007.002-2.673-1.033-5.186-2.914-7.07C17.213 1.7 14.708.663 12.008.663c-5.524 0-10.01 4.487-10.014 10.01-.001 1.83.486 3.619 1.411 5.214l-.995 3.636 3.731-.977c1.6.877 3.197 1.341 4.908 1.341zm11.233-7.585c-.301-.15-1.782-.879-2.053-.978-.271-.099-.469-.15-.667.15-.198.297-.768.978-.941 1.176-.173.199-.347.224-.648.075-.301-.15-1.272-.469-2.423-1.496-.895-.798-1.5-.178-1.5-.178-.291.144-.647.075-.845-.124l-.15-.15c-.218-.218-.246-.554-.066-.803.111-.153.226-.33.339-.495.115-.166.154-.285.231-.475.077-.19.038-.356-.019-.475-.058-.119-.469-1.128-.642-1.544-.169-.406-.355-.35-.487-.356-.125-.006-.27-.007-.413-.007-.143 0-.377.054-.573.271-.197.218-.753.736-.753 1.795s.77 2.086.877 2.231c.107.145 1.514 2.311 3.668 3.242.512.221.912.353 1.224.452.515.163.984.14 1.354.085.413-.061 1.782-.728 2.032-1.431.25-.702.25-1.304.175-1.431-.075-.128-.271-.199-.572-.349z"/></svg>
+                            Falar com Vendedor
+                        </button>
+                    `;
+                } else if (item.status === 'reservado') {
+                    actionBtn = `
+                        <button disabled class="w-full bg-amber-50 text-amber-600 border border-amber-200 py-3.5 rounded-2xl text-sm font-semibold cursor-not-allowed">
+                            Item Reservado ⏳
+                        </button>
+                    `;
+                } else {
+                    actionBtn = `
+                        <button disabled class="w-full bg-slate-100 text-slate-400 py-3.5 rounded-2xl text-sm font-semibold cursor-not-allowed">
+                            Vendido 🤝
+                        </button>
+                    `;
+                }
+
+                // Show action buttons if logged in
+                let adminControls = '';
+                if (isAdminActive) {
+                    adminControls = `
+                        <div class="absolute top-2.5 right-2.5 flex gap-1 z-10">
+                            <button onclick="openEditItemModal('${item.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl shadow-lg transition-all" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button onclick="deleteItem('${item.id}')" class="bg-rose-600 hover:bg-rose-500 text-white p-2.5 rounded-xl shadow-lg transition-all" title="Excluir">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                const finalImgUrl = item.image || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80";
+
+                card.innerHTML = `
+                    ${adminControls}
+                    <div class="relative h-56 overflow-hidden bg-slate-100">
+                        <img src="${finalImgUrl}" alt="${item.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div class="absolute top-3.5 left-3.5 flex flex-col gap-1.5 items-start">
+                            ${statusBadge}
+                            <span class="${conditionColor} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">${item.condition}</span>
+                        </div>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div class="mb-5">
+                            <h4 class="font-extrabold text-slate-800 text-lg mb-1 leading-snug">${item.name}</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">${item.description || 'Sem descrição adicional.'}</p>
+                        </div>
+                        <div>
+                            <div class="border-t border-slate-100 pt-4 mb-4">
+                                ${discountText}
+                                <div class="text-2xl font-black text-slate-900">${currentPrice}</div>
+                            </div>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(function(btn) {
+                btn.className = "category-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all";
+            });
+            document.getElementById('filter-' + cat).className = "category-btn active px-4 py-2 rounded-full text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm";
+            renderCatalog();
+        }
+
+        function handleSearch() {
+            renderCatalog();
+        }
+
+        function sendInterest(itemName, itemPrice) {
+            const cleanPhone = whatsappNumber.replace(/\D/g, '');
+            const formPrice = parseFloat(itemPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            const message = `Olá! Vi o item "${itemName}" anunciado por ${formPrice} no bota-fora de vocês e tenho interesse. Ainda está disponível?`;
+            const urlMessage = encodeURIComponent(message);
+            
+            // Usando a API wa.me com elemento <a> oculto para evitar bloqueios de iframe/popup
+            const whatsappUrl = `https://wa.me/55${cleanPhone}?text=${urlMessage}`;
+            const link = document.createElement('a');
+            link.href = whatsappUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Add / Edit actions
+        function openAddItemModal() {
+            document.getElementById('modalTitle').innerText = "Adicionar Novo Item";
+            document.getElementById('modalItemId').value = "";
+            document.getElementById('modalItemName').value = "";
+            document.getElementById('modalItemCategory').value = "eletro";
+            document.getElementById('modalItemCondition').value = "Excelente";
+            document.getElementById('modalItemPrice').value = "";
+            document.getElementById('modalItemOriginalPrice').value = "";
+            document.getElementById('modalItemStatus').value = "disponivel";
+            document.getElementById('modalItemImage').value = "";
+            document.getElementById('modalItemDesc').value = "";
+
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function openEditItemModal(id) {
+            const item = items.find(function(i) { return i.id === id; });
+            if (!item) return;
+
+            document.getElementById('modalTitle').innerText = "Editar Item";
+            document.getElementById('modalItemId').value = item.id;
+            document.getElementById('modalItemName').value = item.name;
+            document.getElementById('modalItemCategory').value = item.category;
+            document.getElementById('modalItemCondition').value = item.condition;
+            document.getElementById('modalItemPrice').value = item.price;
+            document.getElementById('modalItemOriginalPrice').value = item.originalPrice || "";
+            document.getElementById('modalItemStatus').value = item.status;
+            document.getElementById('modalItemImage').value = item.image || "";
+            document.getElementById('modalItemDesc').value = item.description || "";
+
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function closeItemModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        function saveItem() {
+            const id = document.getElementById('modalItemId').value;
+            const name = document.getElementById('modalItemName').value;
+            const category = document.getElementById('modalItemCategory').value;
+            const condition = document.getElementById('modalItemCondition').value;
+            const price = parseFloat(document.getElementById('modalItemPrice').value);
+            const originalPrice = parseFloat(document.getElementById('modalItemOriginalPrice').value) || null;
+            const status = document.getElementById('modalItemStatus').value;
+            const image = document.getElementById('modalItemImage').value;
+            const description = document.getElementById('modalItemDesc').value;
+
+            if (!name || isNaN(price)) {
+                alert("Por favor, preencha o nome e o preço do item.");
+                return;
+            }
+
+            if (id) {
+                const idx = items.findIndex(function(i) { return i.id === id; });
+                if (idx !== -1) {
+                    items[idx] = { id: id, name: name, category: category, condition: condition, price: price, originalPrice: originalPrice, status: status, image: image, description: description };
+                }
+            } else {
+                items.push({
+                    id: "custom_" + Date.now().toString(),
+                    name: name,
+                    category: category,
+                    condition: condition,
+                    price: price,
+                    originalPrice: originalPrice,
+                    status: status,
+                    image: image,
+                    description: description
+                });
+            }
+
+            localStorage.setItem('move_bazar_items', JSON.stringify(items));
+            renderCatalog();
+            closeItemModal();
+            showToast("Item salvo com sucesso!", "success");
+        }
+
+        function deleteItem(id) {
+            if (confirm("Quer mesmo remover este item do catálogo?")) {
+                items = items.filter(function(i) { return i.id !== id; });
+                localStorage.setItem('move_bazar_items', JSON.stringify(items));
+                renderCatalog();
+                showToast("Item removido com sucesso!", "success");
+            }
+        }
+
+        // Shared Link Generation and State Encapsulation
+        function shareCatalog() {
+            const state = {
+                items: items,
+                config: {
+                    whatsapp: whatsappNumber,
+                    title: catalogTitle,
+                    subtitle: catalogSubtitle,
+                    pin: adminPIN
+                }
+            };
+
+            const jsonString = JSON.stringify(state);
+            const base64Str = btoa(encodeURIComponent(jsonString).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+
+            const shareUrl = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(base64Str);
+            
+            const copyBox = document.createElement('input');
+            copyBox.value = shareUrl;
+            document.body.appendChild(copyBox);
+            copyBox.select();
+            
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showToast("Link seguro copiado com sucesso!", "success");
+                } else {
+                    showToast("Falha ao copiar link automaticamente.", "error");
+                }
+            } catch (err) {
+                window.prompt("Copie o link abaixo para compartilhar o bazar:", shareUrl);
+            }
+            document.body.removeChild(copyBox);
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.innerText = message;
+
+            if (type === 'success') {
+                iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
+                iconEl.className = "text-emerald-400";
+            } else if (type === 'error') {
+                iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 10-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>`;
+                iconEl.className = "text-rose-400";
+            } else {
+                iconEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>`;
+                iconEl.className = "text-sky-400";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(function() {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
